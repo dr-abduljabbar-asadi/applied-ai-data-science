@@ -1,0 +1,214 @@
+================================================================================
+MASTER PROMPT — "ML Algorithm from Scratch" Teaching Notebook (GENERAL)
+================================================================================
+Reusable for ANY machine-learning algorithm/concept (regression, classification,
+clustering, dimensionality reduction, a small neural net, etc.). Fill in the
+{PLACEHOLDERS}, then paste everything to an AI coding assistant that has access
+to your workspace.
+
+--------------------------------------------------------------------------------
+FILL THESE IN FIRST
+--------------------------------------------------------------------------------
+{ALGORITHM}      = e.g. "K-Nearest Neighbors" / "Logistic Regression" / "K-Means"
+{TASK_TYPE}      = one of: Regression | Classification | Clustering |
+                  Dimensionality Reduction | Forecasting | Deep Learning | Other
+{SOURCE}         = path/snippet of the from-scratch script to convert
+                  (or "write it from scratch")
+{NOTEBOOK_PATH}  = e.g. ml_fundementals/{algorithm}_tutorial.ipynb
+{SYNTHETIC_DATA} = the toy/simple dataset for the first pass
+                  (e.g. sklearn make_regression / make_classification / make_blobs)
+{REAL_DATASET}   = a real bundled dataset for the bonus pass
+                  (e.g. load_diabetes / load_iris / load_wine / load_breast_cancer)
+{METRICS}        = the metrics that fit {TASK_TYPE} (see METRICS BY TASK below)
+
+--------------------------------------------------------------------------------
+ROLE
+--------------------------------------------------------------------------------
+You are an expert Python, machine-learning, data-visualisation and technical-
+education assistant. Produce ONE polished Jupyter notebook that teaches
+{ALGORITHM} from scratch. It must run top-to-bottom without errors and suit
+beginners and intermediate learners.
+
+--------------------------------------------------------------------------------
+SOURCE & FIDELITY
+--------------------------------------------------------------------------------
+Base the model on {SOURCE}. Preserve the core algorithm's learning/logic. You MAY
+improve code quality, fix bugs, remove duplication, and clarify structure — but
+explain any refactor briefly in a markdown note.
+
+--------------------------------------------------------------------------------
+OUTPUT
+--------------------------------------------------------------------------------
+Create/overwrite: {NOTEBOOK_PATH}
+- Alternate Markdown and Code cells. Follow EVERY code cell with a short plain-
+  English explanation. Add a "Key insight" line after each chart.
+- Number top-level sections sequentially 1 -> N (no gaps, no "0"); keep any
+  cross-references (e.g. a workflow table) consistent with the real numbers.
+- Must execute cleanly from top to bottom (Run All).
+
+--------------------------------------------------------------------------------
+ENVIRONMENT
+--------------------------------------------------------------------------------
+- Python 3.14+ (or the user's active kernel).
+- Base packages: numpy, pandas, matplotlib, seaborn, scikit-learn.
+- Add plotly for interactive charts; add statsmodels only if you use a Plotly
+  OLS trendline. Install any missing package into the notebook's active kernel.
+
+--------------------------------------------------------------------------------
+NOTEBOOK STRUCTURE (adapt content to {ALGORITHM}/{TASK_TYPE})
+--------------------------------------------------------------------------------
+TITLE CELL
+  - Title + one-line subtitle; Overview (what it teaches / who it's for /
+    {TASK_TYPE}); Learning outcomes; "What you will build"; and a
+    "How to use this notebook" call-out (run top-to-bottom; explanations follow
+    every code cell; animations have a play button; watch for Key insights).
+
+1. THE CONCEPT IN PLAIN LANGUAGE
+   - Explain {ALGORITHM} simply: what it does, when to use it, why it's useful.
+   - An "Everyday examples" table (>= 6 domains, input -> output for {TASK_TYPE}).
+   - 1-2 intuitive analogies. A short "how it learns/works" paragraph.
+   - A key-terms glossary. Include the core formula(s) if applicable.
+
+1b. INTUITION ANIMATION (optional but encouraged; only if it aids understanding)
+   - A small, SELF-CONTAINED matplotlib animation of the core idea (it imports
+     what it needs so it runs even before Setup). Examples:
+       * regression -> sweep a line's slope, show residual bars + total error;
+       * classification -> move a decision boundary / vote among neighbours;
+       * clustering -> iterate centroids;
+       * gradient methods -> a ball rolling down a loss curve.
+   - Render inline with HTML(anim.to_jshtml()); add a "what to notice" note.
+
+2. THE MACHINE-LEARNING WORKFLOW
+   - A mermaid flowchart of the pipeline (load -> explore -> preprocess ->
+     split -> train -> predict -> evaluate -> interpret; adapt for unsupervised).
+   - A table mapping each step to its section number (keep numbers consistent).
+   - Note when/why feature scaling matters for {ALGORITHM}.
+
+3. SETUP — imports + seaborn theme + %matplotlib inline.
+
+4. EVALUATION METRICS (define first, reuse later)
+   - Implement the {METRICS} for {TASK_TYPE} with type hints + NumPy-style
+     docstrings. Prefer standard, robust definitions and note any improvement
+     over a naive version.
+
+5. THE MODEL — {ALGORITHM} from scratch
+   - Mirror the scikit-learn estimator API: fit()/predict() (and predict_proba/
+     transform where relevant).
+   - Full type hints + NumPy-style docstrings on the class and every method.
+   - Modern NumPy: np.asarray(..., dtype=float) and the @ operator.
+   - Where iterative, record a history_ attribute (e.g. loss_history_) for a
+     learning curve. fit() returns self. Validate at boundaries (e.g. predict
+     before fit -> clear error).
+
+6. THE DATA (+ TRAIN/TEST SPLIT for supervised tasks)
+   - Generate {SYNTHETIC_DATA} with a fixed random_state. For supervised tasks,
+     train_test_split with a fixed seed and a held-out test set.
+
+7. EXPLORATORY DATA ANALYSIS
+   - DataFrame; print shape / missing / duplicates; head(); describe().
+   - Seaborn views suited to {TASK_TYPE} (distributions; feature-vs-target
+     scatter for regression; class balance + pairwise separation for
+     classification; feature spread for clustering).
+
+8. TRAIN THE MODEL — fit on the training data; produce predictions.
+
+9. EVALUATE — compute + print the {METRICS}; explain how to read each one.
+   - If the model is iterative, add a LEARNING CURVE (loss/score vs iteration)
+     from history_, and explain its shape.
+
+10. VISUALISING RESULTS (pick what fits {TASK_TYPE})
+   - Regression: fit line/surface; actual-vs-predicted with a 45-deg reference
+     (equal aspect); RESIDUAL ANALYSIS (residuals vs predicted for train+test,
+     zero line, plus a marginal HISTOGRAM of residuals).
+   - Classification: DECISION BOUNDARY (2-D), CONFUSION MATRIX, and
+     ROC / precision-recall if appropriate.
+   - Clustering/DR: cluster/embedding scatter coloured by label; inertia/elbow
+     or explained-variance where relevant.
+   - Each chart: title, axis labels, readable colours, a short interpretation
+     and a "Key insight" line.
+
+11. ANIMATION(S) OF THE LEARNING PROCESS (only where they teach something)
+   - Show the algorithm improving over iterations (e.g. gradient descent line
+     settling; boundary forming; centroids converging). If using gradient
+     descent, consider TWO views: data space (model changing) AND parameter
+     space (a ball rolling down the loss curve with SMALL, visible steps).
+   - Render inline via HTML(anim.to_jshtml()); call plt.close(fig) before
+     display to avoid a duplicate static figure. Add "what to notice" notes.
+
+12. BONUS — A REAL DATASET ({REAL_DATASET})
+   - Load {REAL_DATASET}; DataFrame; shape/missing/duplicates; head/describe.
+   - INTERACTIVE PLOTLY EDA, e.g.:
+       * a correlation view (for many features, a circle "corrplot": lower
+         triangle, SIZE = |corr|, COLOUR = sign on a diverging red->white->blue
+         scale, hover for values); OR class-coloured scatter for classification;
+       * a key feature-vs-target scatter (add marginal histograms; add an OLS
+         trendline for regression via trendline="ols").
+   - PREPROCESSING: split FIRST, then fit the scaler on TRAIN only and transform
+     TEST (explain data leakage). Encode categoricals if present.
+   - TRAIN the SAME model on the processed real data; report the {METRICS}.
+   - INTERACTIVE PLOTLY RESULTS (actual-vs-predicted for regression / confusion
+     matrix or boundary for classification), with on-chart metric annotations.
+   - INTERPRETATION: feature importance / learned weights as a sorted,
+     value-labelled horizontal Plotly bar chart (colour by sign; legend), or the
+     model-appropriate equivalent. Note it is realistic/honest for real data.
+
+N-3. KEY TAKEAWAYS (bullets, including a "real data is messier" point).
+N-2. COMMON MISTAKES & TROUBLESHOOTING (markdown table of failure modes + fixes,
+     e.g. unscaled features, learning-rate/param issues, leakage, overfitting,
+     wrong metric for the task).
+N-1. EXERCISES (>= 6, hands-on with the code above; include a "compare to the
+     scikit-learn implementation" exercise).
+N.   NEXT STEPS & IMPROVEMENTS + a short provenance note (what was preserved vs
+     added; any refactor rationale).
+
+--------------------------------------------------------------------------------
+METRICS BY TASK (use the right ones for {TASK_TYPE})
+--------------------------------------------------------------------------------
+- Regression:      MSE / RMSE, MAE, R2 (standard 1 - SS_res/SS_tot).
+- Classification:  accuracy, precision, recall, F1, confusion matrix,
+                   ROC-AUC / PR-AUC where appropriate.
+- Clustering:      inertia/elbow, silhouette; ARI/NMI if labels exist.
+- Dim. Reduction:  explained variance ratio; reconstruction error.
+
+--------------------------------------------------------------------------------
+VISUALISATION RULES (apply throughout)
+--------------------------------------------------------------------------------
+- Choose the BEST library per chart; don't default to one:
+    * Plotly for INTERACTIVE EDA/results (corrplot, marginal scatters,
+      actual-vs-predicted, feature importance, confusion matrix).
+    * Matplotlib for custom model plots, decision boundaries, and ALL animations.
+    * Seaborn for quick statistical distributions/scatters.
+- Every chart: clear title, axis labels, readable colours, a short
+  interpretation and a "Key insight" line.
+- CENTER all Plotly titles:  title=dict(x=0.5, xanchor="center")
+  (the plotly_white template left-aligns titles by default).
+- Bar charts: sort by magnitude, add value labels, de-clutter spines, light grid
+  behind the bars, and a legend explaining colours.
+- Comparison plots (actual-vs-predicted): equal aspect + matched ranges so the
+  reference line is fair; annotate the metric(s) on the chart.
+- Animations: render inline via HTML(anim.to_jshtml()) (no ffmpeg needed);
+  plt.close(fig) before displaying to avoid a duplicate static figure; keep
+  steps small enough that progress is visible.
+
+--------------------------------------------------------------------------------
+CODE QUALITY (Python best practices)
+--------------------------------------------------------------------------------
+- Type hints + NumPy-style docstrings on all functions/classes.
+- Modern NumPy: np.asarray(..., dtype=float), the @ operator.
+- Validate at boundaries; don't over-engineer or add speculative features.
+- No unused imports; return self from fit for chaining.
+- Beginner-friendly code split into logical, top-to-bottom cells.
+
+--------------------------------------------------------------------------------
+ACCEPTANCE CRITERIA
+--------------------------------------------------------------------------------
+1. Runs top-to-bottom with no errors on the active Python kernel.
+2. Section headings are sequential 1..N and any cross-references match.
+3. Animations play inline; Plotly charts render with CENTERED titles.
+4. Metrics match {TASK_TYPE}; the from-scratch model exposes a clean fit/predict
+   API and (if iterative) a history_ for the learning curve.
+5. The real-dataset pass reports realistic, honest results and an interpretable
+   importance/│boundary/│cluster view.
+
+(Optional) After building, commit the notebook to git and push.
+================================================================================
