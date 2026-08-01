@@ -134,6 +134,21 @@ TITLE CELL
      space (a ball rolling down the loss curve with SMALL, visible steps).
    - Render inline via HTML(anim.to_jshtml()); call plt.close(fig) before
      display to avoid a duplicate static figure. Add "what to notice" notes.
+   - INTERACTIVE EXTRAS (encouraged as a "Bonus: interactive extras" block):
+     add Plotly figures the learner can drive live with a play button (▶) and a
+     step/parameter slider (go.Figure with frames + updatemenus + sliders).
+     Good examples for gradient methods:
+       * a rotatable 3-D LOSS SURFACE (go.Surface) with the descent path as an
+         animated go.Scatter3d rolling to the minimum — shows optimising TWO
+         parameters at once (e.g. slope w AND intercept b);
+       * a HYPERPARAMETER EXPLORER slider (e.g. learning rate) that swaps between
+         precomputed loss curves so the learner sees crawl vs converge vs
+         DIVERGE (include one value large enough to visibly diverge; clamp the
+         loss, e.g. min(loss, 1e6), so a diverging run stays plottable).
+     Keep animated frames minimal (only the traces that change) and centre the
+     title. Close with a short "more creative ideas you could add" list (e.g. an
+     ipywidgets manual line-fit, a good-vs-diverging race, a confidence band, a
+     step-through slideshow of forward -> error -> gradients -> update).
 
 12. BONUS — A REAL DATASET ({REAL_DATASET})
    - Load {REAL_DATASET}; DataFrame; shape/missing/duplicates; head/describe.
@@ -189,6 +204,14 @@ VISUALISATION RULES (apply throughout)
 - Animations: render inline via HTML(anim.to_jshtml()) (no ffmpeg needed);
   plt.close(fig) before displaying to avoid a duplicate static figure; keep
   steps small enough that progress is visible.
+- Interactive Plotly animations (play button + slider): build with go.Figure +
+  frames + updatemenus (an animate button) + sliders; in each frame update ONLY
+  the traces that change (pass traces=[...]) so static elements (e.g. a surface)
+  don't flicker; centre the title. Use these for 3-D loss surfaces and
+  hyperparameter explorers.
+- NOTE ON GITHUB: Plotly interactives render in VS Code/Jupyter but NOT in
+  GitHub's static .ipynb preview. If the notebook must look good on GitHub too,
+  offer a static image fallback.
 
 --------------------------------------------------------------------------------
 CODE QUALITY (Python best practices)
@@ -204,7 +227,9 @@ ACCEPTANCE CRITERIA
 --------------------------------------------------------------------------------
 1. Runs top-to-bottom with no errors on the active Python kernel.
 2. Section headings are sequential 1..N and any cross-references match.
-3. Animations play inline; Plotly charts render with CENTERED titles.
+3. Animations play inline; Plotly charts render with CENTERED titles; any
+   interactive Plotly animations expose a working play button and slider, and a
+   hyperparameter explorer includes a value that visibly diverges.
 4. Metrics match {TASK_TYPE}; the from-scratch model exposes a clean fit/predict
    API and (if iterative) a history_ for the learning curve.
 5. The real-dataset pass reports realistic, honest results and an interpretable
