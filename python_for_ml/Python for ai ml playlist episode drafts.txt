@@ -1,0 +1,809 @@
+================================================================================
+PYTHON FOR AI/ML  —  PLAYLIST 1 OF 5  —  DETAILED EPISODE DRAFTS
+Compressed, technical-audience track ("Python for AI for people who already code")
+17 episodes (13 essential + 4 optional). Filmed in Google Colab. Mix of short
+from-scratch builds (10-20 min) and a few project deep-dives (30-60 min).
+================================================================================
+
+HOW TO USE THIS DOCUMENT
+- Each episode below is a film-ready draft: hook, objectives, section-by-section
+  outline with the exact code to demo, the artifact to ship, pitfalls to call out,
+  and the recap + "next episode" tease.
+- [HOOK] episodes are your search-traffic priorities. Film EP7, EP5, EP12 first.
+- Every title stays ML-angled ("...for ML", "from scratch", "vs") on purpose.
+- Ship each episode's notebook to the playlist GitHub repo, one folder per episode,
+  with an "Open in Colab" badge at the top.
+
+PLAYLIST PROMISE (say some version of this in the channel/playlist intro):
+"Python for AI, for people who already program — the exact NumPy, pandas, OOP, and
+tooling subset that powers the rest of this course, taught vectorized and from
+scratch in Colab. No 'what is a variable.' We start where real ML code starts."
+
+
+================================================================================
+EP1 — SET UP ONCE, REPRODUCE FOREVER: COLAB + uv FOR ML PROJECTS
+~15 min · SHORT · ESSENTIAL
+================================================================================
+
+COLD OPEN (first 30s)
+"Ninety percent of 'it works on my machine' problems in ML are environment
+problems. In this episode we set up an environment once, lock it, and never fight
+dependencies again — using Colab for teaching and uv for real projects."
+
+LEARNING OBJECTIVES
+- Run and configure a Colab notebook (runtime, GPU/TPU, mounting data).
+- Create reproducible local environments with uv (init, add, sync, lockfiles).
+- Understand why reproducibility matters before writing a single line of ML code.
+
+PREREQUISITES: none (this is episode 1). Assumes general programming literacy.
+
+OUTLINE + WHAT TO DEMO
+1. Colab tour (4 min)
+   - New notebook, cell types, run order, the runtime menu.
+   - Runtime > Change runtime type: CPU vs T4 GPU vs TPU; when each matters.
+   - Mounting Google Drive:
+       from google.colab import drive
+       drive.mount('/content/drive')
+   - Uploading a file, reading a CSV, the ephemeral filesystem warning (session
+     resets wipe everything not in Drive/GitHub).
+2. Why environments (3 min)
+   - The dependency-hell story: two projects needing different numpy versions.
+   - venv vs conda vs uv, one sentence each.
+3. uv hands-on (6 min)
+   - Install uv, then:
+       uv init ml-course
+       cd ml-course
+       uv add numpy pandas scikit-learn matplotlib
+       uv run python -c "import numpy; print(numpy.__version__)"
+   - Show pyproject.toml and uv.lock; explain lockfile = exact reproducibility.
+   - uv sync on a fresh clone reproduces the environment.
+   - Mention speed (uv is dramatically faster than pip) but don't overclaim numbers;
+     show it, don't quote benchmarks.
+4. Bridging Colab and local (2 min)
+   - In Colab you'll usually just `!pip install -q ...` at the top; show the pinned
+     pattern: `!pip install -q "numpy==2.*" "pandas==2.*"`.
+   - Explain: notebooks in this course pin versions in a setup cell so viewers
+     reproduce your results.
+
+ARTIFACT
+A template repo + Colab notebook: a committed pyproject.toml / uv.lock that
+bootstraps the entire course environment, plus a Colab setup cell viewers can copy.
+
+PITFALLS TO CALL OUT
+- Colab sessions time out (~90 min idle); anything not saved to Drive/GitHub is gone.
+- Don't `!pip install` unpinned in a tutorial you want others to reproduce.
+
+RECAP + NEXT
+"Environment locked. Next: the Python-specific stuff that bites people who already
+code — the fast crash course."
+
+
+================================================================================
+EP2 — PYTHON CRASH COURSE FOR PEOPLE WHO ALREADY CODE
+~20 min · SHORT · ESSENTIAL
+================================================================================
+
+COLD OPEN
+"You already know loops and functions. This is the 20-minute tour of what's
+DIFFERENT in Python and what quietly breaks ML code — the gotchas, not the basics."
+
+LEARNING OBJECTIVES
+- Command the Python-specific idioms used constantly in ML code.
+- Avoid the mutability/aliasing bugs that corrupt datasets silently.
+
+PREREQUISITES: EP1.
+
+OUTLINE + WHAT TO DEMO
+1. Syntax deltas fast (3 min): indentation blocks, no braces, truthiness
+   (empty list/str/0/None are falsy), ternary `x if cond else y`.
+2. Strings & f-strings (2 min): f"{value:.3f}", f"{x=}" debug form.
+3. Iterables idioms (4 min): enumerate, zip, unpacking (a, *rest = ...),
+   dict/tuple unpacking, `for k, v in d.items()`.
+4. THE big one — mutability & aliasing (5 min):
+       a = [1, 2, 3]; b = a; b.append(4)   # a is now [1,2,3,4] — surprise
+       import copy; c = copy.deepcopy(a)
+   - Default mutable argument trap:
+       def f(x, acc=[]):   # BAD
+   - Why this matters: in-place df/array mutation corrupting your training data.
+5. Slicing (3 min): seq[start:stop:step], negative indices, seq[::-1];
+   preview that NumPy/pandas slicing looks similar but returns views (EP6/EP9).
+6. Errors & exceptions (2 min): try/except, raising, why bare except is bad.
+7. Imports & modules (1 min): from x import y, __name__ == "__main__".
+
+ARTIFACT
+A "Python gotchas for ML" cheat-sheet notebook: each gotcha with a broken cell and
+the fix, runnable.
+
+PITFALLS TO CALL OUT
+- Aliasing vs copying; mutable default arguments.
+- `is` vs `==` (identity vs equality).
+
+RECAP + NEXT
+"That's the language surface. Next: comprehensions and generators — how Python
+processes data lazily and cleanly."
+
+
+================================================================================
+EP3 — COMPREHENSIONS, GENERATORS & FUNCTIONAL PATTERNS FOR DATA
+~18 min · SHORT · ESSENTIAL
+================================================================================
+
+COLD OPEN
+"How do you process a file bigger than your RAM? One item at a time. Generators are
+how Python does lazy, memory-safe data pipelines — and comprehensions are how you
+write transforms that read like math."
+
+LEARNING OBJECTIVES
+- Write list/dict/set comprehensions fluently.
+- Understand generators, yield, and lazy evaluation.
+- Build a streaming pipeline that uses constant memory.
+
+PREREQUISITES: EP2.
+
+OUTLINE + WHAT TO DEMO
+1. Comprehensions (5 min):
+   - list: [x**2 for x in data if x > 0]
+   - dict: {k: v for k, v in pairs}
+   - set: {word.lower() for word in tokens}
+   - nested/flatten: [x for row in matrix for x in row]
+   - When NOT to use them (unreadable triple-nested → use a loop).
+2. Generator expressions & yield (6 min):
+   - gen = (x**2 for x in data) — lazy, no list built.
+   - def read_lines(path): with open(path) as f: for line in f: yield line.strip()
+   - Show memory difference conceptually: list of 10M vs generator.
+3. Lazy evaluation & itertools (4 min): islice, chain, takewhile;
+   why streaming matters for large datasets and data loaders.
+4. Functional patterns (3 min): map/filter (and why comprehensions usually win),
+   lambda, sorted(key=...), any/all. Brief note: these show up in pandas .apply,
+   PyTorch Dataset __getitem__, and data loaders later.
+
+ARTIFACT
+A generator pipeline that streams a large file, transforms each record, and yields
+results — demonstrated to run in constant memory.
+
+PITFALLS
+- Generators are one-shot (exhaust once). Show the "empty on second loop" surprise.
+- Comprehension readability limit.
+
+RECAP + NEXT
+"Now the structure that the entire scikit-learn API is built on: classes and the
+fit/predict pattern."
+
+
+================================================================================
+EP4 — OOP FOR ML: CLASSES, DUNDER METHODS & THE fit/predict PATTERN
+~20 min · SHORT · ESSENTIAL
+================================================================================
+
+COLD OPEN
+"Every model you'll ever use — LinearRegression, StandardScaler, a PyTorch module —
+is a class with the same shape. Learn that shape once and the whole ecosystem stops
+being magic."
+
+LEARNING OBJECTIVES
+- Write classes with __init__, methods, and the key dunder methods.
+- Understand the ML convention: hyperparameters in __init__, learned attributes end
+  with an underscore (e.g., self.mean_).
+
+PREREQUISITES: EP2.
+
+OUTLINE + WHAT TO DEMO
+1. Class basics fast (4 min): class, __init__, self, instance vs class attributes,
+   methods.
+2. Dunder methods that matter for ML (6 min):
+   - __repr__ (readable model objects), __call__ (make an instance callable, like a
+     layer), __len__ / __getitem__ (the Dataset protocol used by PyTorch DataLoaders).
+3. The fit/transform convention (7 min) — build a StandardScaler by hand:
+       class StandardScaler:
+           def fit(self, X):
+               self.mean_ = X.mean(axis=0)
+               self.std_  = X.std(axis=0)
+               return self
+           def transform(self, X):
+               return (X - self.mean_) / self.std_
+           def fit_transform(self, X):
+               return self.fit(X).transform(X)
+   - Explain the trailing-underscore convention and why fit returns self (chaining).
+4. Inheritance in one breath (3 min): base class + subclass, super().__init__();
+   tease that scikit-learn gives you methods for free via mixins (next episode).
+
+ARTIFACT
+A working StandardScaler-style transformer class with fit / transform / fit_transform.
+
+PITFALLS
+- Fitting on the whole dataset then splitting = data leakage (foreshadow ML track).
+- Mutating X in place inside transform.
+
+RECAP + NEXT
+"You built the pattern. Next — the flagship — we make our own class a REAL
+scikit-learn estimator that drops into Pipeline and GridSearchCV."
+
+
+================================================================================
+EP5 — BUILD YOUR OWN SCIKIT-LEARN ESTIMATOR   [HOOK — film early]
+~35 min · PROJECT DEEP-DIVE · ESSENTIAL
+================================================================================
+
+COLD OPEN
+"By the end of this video your hand-written model will pass scikit-learn's own
+compliance check and slot straight into a Pipeline and GridSearchCV — because you'll
+understand exactly what an 'estimator' is."
+
+LEARNING OBJECTIVES
+- Implement a fully sklearn-compatible estimator (fit/predict/score).
+- Use BaseEstimator + mixins, input validation, and check_estimator.
+
+PREREQUISITES: EP4, and enough NumPy that viewers aren't lost (can reference EP6-8;
+if filmed early per the hook strategy, keep the NumPy light and explain inline).
+
+OUTLINE + WHAT TO DEMO
+1. What "estimator" means in sklearn (4 min): the fit/predict contract; params in
+   __init__ only; learned state with trailing underscore; get_params/set_params.
+2. Scaffold with BaseEstimator + a mixin (6 min):
+       from sklearn.base import BaseEstimator, RegressorMixin
+       from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
+       class MyLinearRegression(BaseEstimator, RegressorMixin):
+           def __init__(self, fit_intercept=True):
+               self.fit_intercept = fit_intercept
+   - Explain: BaseEstimator gives get_params/set_params; RegressorMixin gives score().
+3. Implement fit (8 min): validate with check_X_y; solve via normal equation
+   (np.linalg.lstsq or the closed form); store self.coef_, self.intercept_;
+   set self.n_features_in_; return self.
+4. Implement predict (5 min): check_is_fitted(self); check_array(X); return X @ coef_
+   + intercept_.
+5. Prove compatibility (8 min):
+   - Compare predictions to sklearn's LinearRegression on the same data (should match).
+   - Drop it into a Pipeline with StandardScaler.
+   - Run GridSearchCV over fit_intercept.
+   - from sklearn.utils.estimator_checks import check_estimator — run it, fix what fails.
+4 min buffer for narration.
+
+ARTIFACT
+A from-scratch estimator (k-NN or linear regression) that is fully sklearn-compatible
+and passes check_estimator, demonstrated inside a Pipeline + GridSearchCV.
+
+PITFALLS
+- Doing work in __init__ (forbidden — params must be stored unchanged).
+- Forgetting check_is_fitted / input validation (why check_estimator fails).
+
+SEO / HOOK NOTES
+Title options: "Build Your Own Scikit-Learn Estimator (from scratch)" /
+"Stop Treating Scikit-Learn Like Magic — Build an Estimator Yourself".
+Underserved on video; strong written demand. Description: mention BaseEstimator,
+Pipeline, GridSearchCV, check_estimator for search.
+
+RECAP + NEXT
+"You now understand the whole sklearn API from the inside. Time to go under pandas
+and sklearn — into NumPy, where all the real computation happens."
+
+
+================================================================================
+EP6 — NUMPY ARRAYS, dtypes & MEMORY: THE MENTAL MODEL
+~18 min · SHORT · ESSENTIAL
+================================================================================
+
+COLD OPEN
+"A NumPy array is not a Python list — it's a typed, contiguous block of memory. Once
+you see that, vectorization, broadcasting, and every speedup makes sense."
+
+LEARNING OBJECTIVES
+- Explain ndarray vs list, dtypes, shape/strides, and views vs copies.
+
+PREREQUISITES: EP2.
+
+OUTLINE + WHAT TO DEMO
+1. list vs ndarray (4 min): create arrays (np.array, arange, zeros, ones, linspace,
+   random); why arrays are faster (typed, contiguous, C loops).
+2. dtypes (4 min): int64/float64/float32/bool; astype; why float32 matters for ML
+   memory (and GPUs later); overflow surprises with small int types.
+3. shape, ndim, size, reshape (3 min): reshape(-1, 1), the meaning of axis 0/1.
+4. Views vs copies (5 min) — THE bug source:
+       a = np.arange(10); b = a[2:5]; b[0] = 999   # a changed! (view)
+       c = a[2:5].copy()                            # safe
+   - Slices are views; fancy indexing returns copies. Demonstrate both.
+5. Indexing preview (2 min): boolean mask a[a > 0], fancy a[[0,2,4]] (full detail in
+   EP8).
+
+ARTIFACT
+A notebook demonstrating view-vs-copy bugs and dtype-driven speed/memory differences
+(e.g., float64 vs float32 array size).
+
+PITFALLS
+- Silent mutation via views.
+- Integer dtype overflow; unintended upcasting.
+
+RECAP + NEXT
+"You've got the mental model. Next, the single concept that trips up more ML
+beginners than any other: broadcasting."
+
+
+================================================================================
+EP7 — NUMPY BROADCASTING FROM SCRATCH   [HOOK — film first]
+~15 min · SHORT · ESSENTIAL
+================================================================================
+
+COLD OPEN
+"How do you subtract a vector of column means from a whole matrix — with no loop?
+Broadcasting. It's two rules, and it's everywhere in ML."
+
+LEARNING OBJECTIVES
+- State and apply the two broadcasting rules.
+- Replace loops with broadcast operations and know when shapes are incompatible.
+
+PREREQUISITES: EP6.
+
+OUTLINE + WHAT TO DEMO
+1. The problem first (2 min): normalize a (100, 5) matrix by per-column mean —
+   show the ugly loop, then the one-liner.
+2. The two rules (4 min): align shapes right-to-left; dimensions are compatible if
+   equal or one of them is 1; missing leading dims treated as 1.
+       (100, 5) - (5,)      -> ok, subtract row vector from each row
+       (100, 5) - (100, 1)  -> ok, subtract column vector from each column
+       (100, 5) - (100,)    -> ERROR, explain why, fix with [:, None]
+3. Live shape gymnastics (5 min): np.newaxis / None, reshape to make broadcasts work;
+   outer operations a[:, None] * b[None, :].
+4. Real ML use (4 min): z-score normalization (X - mean) / std; pairwise squared
+   distances between rows using broadcasting (the classic KNN trick):
+       diff = X[:, None, :] - X[None, :, :]
+       dists = (diff ** 2).sum(-1)
+
+ARTIFACT
+z-score normalization + a pairwise-distance matrix, loop version vs broadcast version,
+with timing showing the speedup.
+
+PITFALLS
+- The (100,) vs (100,1) trap.
+- Broadcasting blowing up memory (the (N, N, D) intermediate) — mention it.
+
+SEO / HOOK NOTES
+Title: "NumPy Broadcasting Explained From Scratch" / "NumPy Broadcasting: The 2 Rules
+That Kill Your Loops". Evergreen, high-confusion search, usually buried inside long
+courses — own the standalone.
+
+RECAP + NEXT
+"Broadcasting is the foundation. Next we go full vectorization and the linear algebra
+behind a neural network layer."
+
+
+================================================================================
+EP8 — VECTORIZATION & LINEAR ALGEBRA FOR ML
+~30 min · PROJECT DEEP-DIVE · ESSENTIAL
+================================================================================
+
+COLD OPEN
+"A loop over a million rows in Python is slow. The same operation as one matrix
+expression is 100x faster and reads like the math. Let's make the switch — and build
+K-means with zero Python loops over data."
+
+LEARNING OBJECTIVES
+- Replace explicit loops with vectorized NumPy.
+- Use boolean masking, np.where/np.select, and matrix multiplication for ML.
+
+PREREQUISITES: EP6, EP7.
+
+OUTLINE + WHAT TO DEMO
+1. The vectorization mindset (5 min): loop version vs vectorized version of a simple
+   computation; %timeit comparison in Colab.
+2. Boolean masking & selection (5 min): a[a > 0], combining masks with & | ~,
+   np.where(cond, x, y), np.clip, np.select for multi-condition feature bucketing.
+3. Reductions with axis (4 min): sum/mean/std/argmax along axis; keepdims=True for
+   clean broadcasting.
+4. Matrix multiply for ML (6 min): @ vs np.dot vs element-wise *; a neural layer as
+   inputs @ W + b; shapes discipline (why (N,D)@(D,H)->(N,H)).
+5. PROJECT — vectorized K-means (10 min):
+   - assign step: distances via broadcasting (EP7), argmin over clusters
+   - update step: new centroids via boolean-mask means
+   - loop only over iterations, never over data points
+   - plot the clusters; show it matches sklearn KMeans intuition.
+
+ARTIFACT
+A fully vectorized K-means (or logistic-regression gradient step) built only with
+NumPy, with timing vs a naive loop.
+
+PITFALLS
+- Shape mismatches in @; forgetting keepdims; accidental copies in hot loops.
+
+RECAP + NEXT
+"You can now think in arrays. Time to move up a layer to labeled, messy, real-world
+data: pandas."
+
+
+================================================================================
+EP9 — PANDAS FROM SCRATCH FOR ML: SERIES & DATAFRAME   [HOOK]
+~20 min · SHORT · ESSENTIAL
+================================================================================
+
+COLD OPEN
+"pandas the way an ML pipeline actually uses it — not 50 methods you'll forget, but
+the exact moves that get raw data into a clean, typed, model-ready matrix."
+
+LEARNING OBJECTIVES
+- Work with Series/DataFrame, index, select, assign, and inspect for ML.
+
+PREREQUISITES: EP6 (arrays underlie pandas).
+
+OUTLINE + WHAT TO DEMO
+1. The model (3 min): DataFrame = dict of Series = labeled 2D array; index matters.
+2. Loading & first look (4 min): read_csv; .head/.info/.describe/.shape/.dtypes;
+   reading dtypes as a data-quality signal.
+3. Selection done right (6 min): .loc (labels) vs .iloc (positions); column selection;
+   boolean filtering df[df.age > 30]; .loc for safe assignment (avoid chained
+   indexing / SettingWithCopyWarning — show it and fix it).
+4. Vectorized column ops (4 min): create features by column arithmetic; .map/.apply
+   sparingly; why vectorized beats .apply.
+5. To NumPy and back (3 min): df.values / df.to_numpy() for feeding sklearn; keeping
+   feature names.
+
+ARTIFACT
+Load a raw dataset and produce a clean, typed, model-ready DataFrame.
+
+PITFALLS
+- Chained indexing & SettingWithCopyWarning.
+- .apply(axis=1) as a performance trap.
+
+SEO / HOOK NOTES
+Title: "Pandas From Scratch for Machine Learning". Angle away from generic intro
+pandas (Corey/Keith own that) — keep it ML-pipeline framed.
+
+RECAP + NEXT
+"Clean columns in. Next: the wrangling that real datasets demand — joins, groupby,
+missing values, and encoding categories for models."
+
+
+================================================================================
+EP10 — WRANGLING: groupby, merge, MISSING DATA & CATEGORICAL ENCODING
+~30 min · PROJECT DEEP-DIVE · ESSENTIAL
+================================================================================
+
+COLD OPEN
+"Real data arrives in pieces, with holes, and with text where models want numbers.
+This is the feature-engineering core: join it, aggregate it, fill it, encode it."
+
+LEARNING OBJECTIVES
+- Merge/join multiple tables, aggregate with groupby, handle missing data, and encode
+  categoricals for ML.
+
+PREREQUISITES: EP9.
+
+OUTLINE + WHAT TO DEMO
+1. groupby / aggregate (7 min): split-apply-combine; .agg with multiple funcs; group
+   features (e.g., mean target per category) and the leakage caveat.
+2. merge / join (7 min): inner/left/right/outer; on / left_on/right_on; one-to-many;
+   validate= to catch bad keys; concat for stacking.
+3. Missing data (8 min): isna/sum to quantify; dropna vs impute; fillna with
+   mean/median/mode/constant; forward/backward fill for time-ordered; when missingness
+   is itself a feature (indicator column).
+4. Categorical encoding (8 min): one-hot (pd.get_dummies / OneHotEncoder); ordinal
+   encoding when order matters; high-cardinality problem and a brief mention of
+   target/frequency encoding (with the leakage warning). Convert to category dtype.
+
+ARTIFACT
+A reusable feature-engineering function that turns messy multi-table data into a clean
+feature matrix.
+
+PITFALLS
+- Imputing before the train/test split (leakage) — do it inside a pipeline.
+- get_dummies producing different columns on train vs test.
+
+RECAP + NEXT
+"You can shape any dataset now. But on big data pandas gets slow — next we make it
+fast with the Arrow backend and Parquet."
+
+
+================================================================================
+EP11 — FASTER PANDAS: PANDAS 2.x/3.0, PyARROW BACKEND & PARQUET   [HOOK]
+~18 min · SHORT · ESSENTIAL
+================================================================================
+
+COLD OPEN
+"Same pandas API, a fraction of the memory and a big speed jump — by switching the
+engine underneath to Apache Arrow, and your files from CSV to Parquet."
+
+LEARNING OBJECTIVES
+- Use the PyArrow dtype backend, proper nulls, and Parquet I/O.
+- Know what changed in pandas 3.0 (default string dtype).
+
+PREREQUISITES: EP9, EP10.
+
+OUTLINE + WHAT TO DEMO
+1. Why Arrow (4 min): columnar memory, better strings, real null support across all
+   dtypes (vs NaN hacks).
+2. The backend switch (5 min):
+       df = pd.read_csv("data.csv", dtype_backend="pyarrow", engine="pyarrow")
+   - show dtypes now say [pyarrow]; string[pyarrow] vs object.
+   - pandas 3.0 (released Jan 2026) makes a dedicated string dtype default,
+     PyArrow-backed if pyarrow is installed; explain the default-if-installed nuance.
+3. Parquet vs CSV (6 min):
+       df.to_parquet("data.parquet"); pd.read_parquet(...)
+   - benchmark file size and read time vs CSV in Colab; explain columnar + typed +
+     compressed.
+4. Practical guidance (3 min): when to bother (big data, repeated reads, string-heavy);
+   interop caveat (some libraries still expect NumPy dtypes).
+
+ARTIFACT
+A benchmark notebook: same data numpy-backed vs PyArrow-backed, and CSV vs Parquet
+size/speed.
+
+PITFALLS
+- Third-party libs assuming numpy dtypes; pyarrow being optional.
+
+SEO / HOOK NOTES
+Title: "Make Pandas Fast: PyArrow Backend + Parquet (pandas 3.0)". Genuine video gap;
+record against pandas 3.0 now.
+
+RECAP + NEXT
+"That's pandas at its fastest. But sometimes you outgrow pandas entirely — meet
+Polars."
+
+
+================================================================================
+EP12 — POLARS vs PANDAS: WHEN TO SWITCH   [HOOK — film early]
+~25 min · PROJECT DEEP-DIVE · ESSENTIAL
+================================================================================
+
+COLD OPEN
+"Polars is a Rust-powered dataframe library that's multi-core and lazy by default. On
+big ETL it leaves pandas behind — but it's not a drop-in replacement. Here's exactly
+when to switch."
+
+LEARNING OBJECTIVES
+- Read/transform data with Polars' expression API; understand lazy vs eager.
+- Judge honestly when Polars beats pandas and when it doesn't.
+
+PREREQUISITES: EP9, EP10.
+
+OUTLINE + WHAT TO DEMO
+1. Why Polars (4 min): Rust + Arrow, multi-threaded, query optimizer, lazy execution.
+2. Expression API (7 min): the mental shift from pandas:
+       import polars as pl
+       df.filter(pl.col("age") > 30).group_by("city").agg(pl.col("income").mean())
+   - select/with_columns/filter/group_by/agg; method chaining.
+3. Lazy frames (5 min): pl.scan_csv(...).filter(...).collect(); the optimizer only
+   reads/computes what's needed; show explain().
+4. Head-to-head (6 min): same wrangling pipeline in pandas and Polars on a ~10M-row
+   dataset in Colab; time both; be honest that small data + tight sklearn integration
+   still favors pandas.
+5. Interop (3 min): df.to_pandas() / pl.from_pandas() so you can use Polars for heavy
+   ETL and hand off to the sklearn/PyTorch ecosystem.
+
+ARTIFACT
+Same wrangling pipeline in pandas vs Polars, side-by-side timed on a large dataset.
+
+PITFALLS
+- Expecting the pandas API (Polars is deliberately different).
+- Over-reaching: under ~1M rows the win is small; don't rewrite everything.
+
+SEO / HOOK NOTES
+Title: "Polars vs Pandas: When Should You Actually Switch?" Rising demand, no dominant
+incumbent — biggest supply gap in this playlist.
+
+RECAP + NEXT
+"You can move and reshape data at any scale. Now let's SEE it — visualization for EDA."
+
+
+================================================================================
+EP13 — VISUALIZATION FOR EDA: MATPLOTLIB & SEABORN
+~20 min · SHORT · ESSENTIAL
+================================================================================
+
+COLD OPEN
+"Before you model, you look. These are the handful of plots that tell you whether your
+data is even worth modeling — distributions, relationships, outliers, missingness."
+
+LEARNING OBJECTIVES
+- Use the matplotlib figure/axes model and seaborn statistical plots for diagnostics.
+
+PREREQUISITES: EP9.
+
+OUTLINE + WHAT TO DEMO
+1. matplotlib mental model (5 min): Figure vs Axes; fig, ax = plt.subplots();
+   ax.plot/scatter/hist; labels, title, legend; subplots grid.
+2. seaborn for speed (8 min): histplot/kdeplot (distributions), boxplot/violinplot
+   (spread + outliers), scatterplot with hue, heatmap of df.corr() (correlations),
+   pairplot for a quick overview.
+3. Reading plots for ML (5 min): skew → transform; outliers → investigate; strong
+   correlations → leakage or redundancy; class imbalance in a countplot.
+4. Making it reusable (2 min): wrap common plots in helper functions.
+
+ARTIFACT
+A reusable EDA plotting helper module (functions for distributions, correlations,
+missingness).
+
+PITFALLS
+- Plotting without labels/titles; misreading correlation as causation; ignoring axis
+  scales.
+
+RECAP + NEXT
+"You have every tool now. Let's put them together on one real dataset, end to end."
+
+
+================================================================================
+EP14 — END-TO-END EDA PROJECT
+~45 min · PROJECT DEEP-DIVE · ESSENTIAL (main capstone)
+================================================================================
+
+COLD OPEN
+"One real, messy dataset. We go from 'what is this?' to a documented set of findings
+and modeling hypotheses — the full exploratory workflow, narrated."
+
+LEARNING OBJECTIVES
+- Run a complete EDA: structure, quality, distributions, relationships, outliers,
+  missingness, and written conclusions.
+
+PREREQUISITES: EP9-EP13.
+
+OUTLINE + WHAT TO DEMO
+1. Frame the dataset (5 min): source, shape, columns, target; questions to answer.
+2. Structure & quality (8 min): info/dtypes/describe; duplicates; missingness map;
+   fix types.
+3. Univariate (8 min): distributions of key numeric + categorical features; skew,
+   outliers.
+4. Bivariate / multivariate (10 min): feature vs target; correlation heatmap;
+   grouped aggregates; interesting interactions.
+5. Missingness & outliers strategy (6 min): decide impute vs drop vs flag; document why.
+6. Findings & hypotheses (6 min): write plain-language conclusions and a modeling plan
+   (which features look predictive, what to engineer) — hands off to the ML playlist.
+2 min buffer.
+
+ARTIFACT
+A polished, portfolio-ready EDA notebook with documented findings.
+
+PITFALLS
+- Plot-dumping with no narrative; not writing conclusions; peeking at the target in a
+  leaky way.
+
+RECAP + NEXT
+"That's the essential Python-for-ML core. The next episodes are optional power-ups
+that feed the deep-learning and agent tracks — starting with APIs and async."
+
+
+================================================================================
+EP15 — APIs, JSON & ASYNC: FEEDING THE LLM/AGENT TRACK
+~30 min · PROJECT DEEP-DIVE · OPTIONAL (feeds Agentic AI playlist)
+================================================================================
+
+COLD OPEN
+"When you're calling an LLM API a thousand times, doing it one at a time wastes
+minutes. Async lets you fire them concurrently. This is the Python that makes agents
+fast."
+
+LEARNING OBJECTIVES
+- Consume REST/JSON APIs and run many I/O-bound calls concurrently with asyncio.
+
+PREREQUISITES: EP2, EP3.
+
+OUTLINE + WHAT TO DEMO
+1. REST + JSON (6 min): requests.get, status codes, .json(); parsing nested JSON into
+   a DataFrame; handling errors/timeouts; pagination.
+2. Why async for I/O (5 min): the difference between CPU-bound (needs multiprocessing)
+   and I/O-bound (needs async); the "waiting on the network" problem.
+3. asyncio basics (8 min): async def, await, asyncio.run; a single async request with
+   aiohttp (or httpx).
+4. Concurrency that matters (8 min):
+       results = await asyncio.gather(*[fetch(u) for u in urls])
+   - sequential vs gather timing; a Semaphore to cap concurrency and respect rate
+     limits; brief note on retries/backoff.
+5. Tie to the agent track (3 min): batching LLM completions concurrently (e.g.,
+   AsyncOpenAI) — foreshadow the Agentic AI playlist.
+
+ARTIFACT
+An async client that fetches/parses many endpoints (or LLM completions) concurrently
+and reports the speedup vs sequential.
+
+PITFALLS
+- Blocking calls inside async code; hammering an API without a rate limit; forgetting
+  error handling on individual tasks.
+
+RECAP + NEXT
+"Data in from anywhere. Next: making that data trustworthy at the boundary with type
+hints and pydantic — the backbone of modern agents."
+
+
+================================================================================
+EP16 — TYPE HINTS + PYDANTIC v2: RELIABLE DATA AT THE BOUNDARY
+~20 min · SHORT · OPTIONAL (strong bridge to Agentic AI — keep if agents are a priority)
+================================================================================
+
+COLD OPEN
+"LLMs return text; your program needs structured data. pydantic is how you force an
+LLM's output into a validated, typed object — and it's the foundation every agent
+framework is built on."
+
+LEARNING OBJECTIVES
+- Use type hints + a checker, and validate/parse data with pydantic v2 — including
+  structured LLM outputs.
+
+PREREQUISITES: EP2.
+
+OUTLINE + WHAT TO DEMO
+1. Type hints (5 min): def f(x: int) -> float; list[str], dict[str,int], Optional/
+   None, Union; runtime hints are not enforced — that's why we need validation.
+   Mention mypy/pyright briefly.
+2. pydantic v2 models (7 min):
+       from pydantic import BaseModel, Field
+       class Movie(BaseModel):
+           title: str
+           year: int = Field(ge=1900, le=2100)
+           rating: float
+   - model_validate / model_validate_json; validation errors are explicit and useful.
+3. The payoff — structured LLM output (6 min): model_json_schema() to describe the
+   shape to the model; parse the model's JSON reply with model_validate_json; Field
+   descriptions guide the LLM. Show a self-healing parse (catch ValidationError,
+   re-ask).
+4. Why this matters (2 min): this is exactly how tool-calling / agents enforce
+   structured actions — bridge to the Agentic AI playlist.
+
+ARTIFACT
+A pydantic model that validates and self-heals a structured LLM/JSON response.
+
+PITFALLS
+- Assuming type hints are enforced at runtime (they aren't).
+- pydantic v1 vs v2 API differences — teach v2 only.
+
+RECAP + NEXT
+"Reliable data in, reliable objects out. Last power-up: testing and profiling so your
+ML code is correct AND fast."
+
+
+================================================================================
+EP17 — TESTING & PROFILING ML CODE
+~25 min · SHORT · OPTIONAL
+================================================================================
+
+COLD OPEN
+"ML code fails silently — wrong shapes, subtle leaks, off-by-one features — and you
+won't get a stack trace, just a bad model. Tests catch that. Profiling makes it fast."
+
+LEARNING OBJECTIVES
+- Write pytest tests for data/ML code and profile/optimize a bottleneck.
+
+PREREQUISITES: EP4/EP5 (something to test), EP8 (vectorization mindset).
+
+OUTLINE + WHAT TO DEMO
+1. pytest basics (7 min): test files/functions, assert, running tests; fixtures for
+   shared data; @pytest.mark.parametrize for many cases; conftest.py.
+2. What to test in ML (7 min): output shapes and dtypes; invariants (predictions in
+   range, probabilities sum to 1); edge cases (empty input, single row, NaNs);
+   a fit/predict round-trip on the EP5 estimator; a "no data leakage" style check.
+3. Profiling (7 min): %timeit and %prun in Colab; cProfile; finding the hot line;
+   then apply EP8 vectorization to speed it up and re-measure.
+4. Hygiene (4 min): Ruff for lint+format (one fast tool); a minimal CI mention
+   (run tests on push) — light touch.
+
+ARTIFACT
+A small pytest suite + coverage run against the estimator built in EP5, plus a
+before/after profiling example.
+
+PITFALLS
+- Testing implementation details instead of behavior; no tests for the data pipeline;
+  optimizing before profiling.
+
+RECAP + NEXT
+"That closes the Python foundation. You now have the exact Python toolkit the rest of
+the course runs on — next playlist, we start building machine learning models from
+scratch."
+
+
+================================================================================
+APPENDIX — FILMING & SEQUENCING NOTES
+================================================================================
+
+FILM-FIRST ORDER (search hooks): EP7 (Broadcasting), EP5 (Build an Estimator),
+EP12 (Polars vs pandas). Then backfill EP1-EP4, EP6, EP8-EP11, EP13-EP14.
+
+ULTRA-TIGHT ~13-EP CUT: keep EP1, EP2, EP3, EP4, EP5, EP6, EP7, EP8, EP9, EP10,
+EP11, EP12, EP13, EP14 as the spine; if you must cut to 13, merge EP3 into EP2 and
+fold EP11 into EP12. Drop EP15/EP16/EP17 to "optional / later" unless the Agentic
+track is imminent (then keep EP16).
+
+EVERY EPISODE:
+- Ship the Colab notebook to GitHub (one folder per episode) with an "Open in Colab"
+  badge; pin package versions in the setup cell.
+- Keep titles ML-angled ("...for ML", "from scratch", "vs"); never generic.
+- Dark theme, large font, single-column, zoom into code when explaining.
+- Re-record the tooling episodes (EP1 uv, EP11 pandas/PyArrow, EP12 Polars, EP16
+  pydantic) when major versions land — they move fastest.
+
+================================================================================
+END OF DRAFTS
+================================================================================
